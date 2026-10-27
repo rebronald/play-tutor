@@ -21,29 +21,53 @@ export default async function handler(req, res) {
         });
     }
 
-    try {
-        // Updated model string to gemini-3.8-flash as recommended by Google's API response
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-3.8-flash:generateContent?key=${API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents, systemInstruction })
+    // List of models to try in order of preference
+    const fallbackModels = [
+        "gemini-3.8-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite"
+    ];
+
+    const fetchOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents, systemInstruction })
+    };
+
+    let lastError = null;
+
+    // Try each model sequentially until one succeeds
+    for (const model of fallbackModels) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${API_KEY}`;
+            const response = await fetch(url, fetchOptions);
+            const data = await response.json();
+
+            // If request succeeded, return the payload immediately
+            if (response.ok && !data.error) {
+                return res.status(200).json(data);
             }
-        );
 
-        const data = await response.json();
+            // If error is 503 (server overloaded) or 429 (rate limited), loop to try the next fallback model
+            if (data.error && (data.error.code === 503 || data.error.code === 429)) {
+                console.warn(`Model ${model} busy (${data.error.code}). Trying fallback model...`);
+                lastError = data.error;
+                continue;
+            }
 
-        if (data.error) {
+            // If it's a non-capacity error (e.g. invalid key/schema), return it directly
             return res.status(200).json({
                 candidates: [{ content: { parts: [{ text: `Google API Error (${data.error.code}): ${data.error.message}` }] } }]
             });
-        }
 
-        return res.status(200).json(data);
-    } catch (error) {
-        return res.status(200).json({
-            candidates: [{ content: { parts: [{ text: "Server Exception: Could not connect to Google AI servers." }] } }]
-        });
+        } catch (err) {
+            console.error(`Fetch exception on model ${model}:`, err);
+            lastError = err;
+        }
     }
+
+    // If all models failed due to capacity issues
+    return res.status(200).json({
+        candidates: [{ content: { parts: [{ text: `Google AI Servers are currently under heavy load across all models (${lastError?.code || '503'}). Please try again in a moment.` }] } }]
+    });
 }
