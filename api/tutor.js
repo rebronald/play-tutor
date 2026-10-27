@@ -22,8 +22,9 @@ export default async function handler(req, res) {
     }
 
     try {
+        // Updated model string to gemini-1.5-flash-latest on v1beta
         const response = await fetch(
-           `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,           
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -33,7 +34,6 @@ export default async function handler(req, res) {
 
         const data = await response.json();
 
-        // If Google API returns an error, output it directly as the tutor response so you can read it in chat
         if (data.error) {
             return res.status(200).json({
                 candidates: [{ content: { parts: [{ text: `Google API Error (${data.error.code}): ${data.error.message}` }] } }]
