@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const API_KEY = process.env.GEMINI_API_KEY;
 
     if (!API_KEY) {
-        return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY missing.' });
+        return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY missing on Vercel.' });
     }
 
     try {
@@ -35,6 +35,12 @@ export default async function handler(req, res) {
         );
 
         const data = await response.json();
+        
+        // Pass Google's exact status code if it failed
+        if (!response.ok) {
+            return res.status(response.status).json(data);
+        }
+
         return res.status(200).json(data);
     } catch (error) {
         return res.status(500).json({ error: 'Failed to communicate with AI server.' });
