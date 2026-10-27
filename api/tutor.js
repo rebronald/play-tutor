@@ -1,11 +1,9 @@
 // api/tutor.js
 export default async function handler(req, res) {
-    // 1. Set CORS headers so Articulate Review 360 can talk to this endpoint
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Handle preflight browser requests
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
@@ -35,7 +33,6 @@ export default async function handler(req, res) {
 
         const data = await response.json();
 
-        // If Google API returns an error payload, forward it directly inside candidates so the chat window displays it
         if (data.error) {
             return res.status(200).json({
                 candidates: [{ content: { parts: [{ text: `Google API Error (${data.error.code}): ${data.error.message}` }] } }]
