@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { contents } = req.body;
+    const { contents, systemInstruction } = req.body;
 
     // 2. Fetch API key safely from Vercel Environment Variables
     const API_KEY = process.env.GEMINI_API_KEY;
@@ -26,11 +26,11 @@ export default async function handler(req, res) {
 
     try {
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents })
+                body: JSON.stringify({ contents, systemInstruction })
             }
         );
 
