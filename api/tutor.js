@@ -22,9 +22,9 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Updated model string to gemini-1.5-flash-latest on v1beta
+        // Updated model string to gemini-3.8-flash as recommended by Google's API response
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-3.8-flash:generateContent?key=${API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
