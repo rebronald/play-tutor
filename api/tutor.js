@@ -4,8 +4,13 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
 
     const { contents, systemInstruction } = req.body;
     const API_KEY = process.env.GEMINI_API_KEY;
@@ -18,7 +23,7 @@ export default async function handler(req, res) {
 
     try {
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -37,7 +42,7 @@ export default async function handler(req, res) {
         return res.status(200).json(data);
     } catch (error) {
         return res.status(200).json({
-            candidates: [{ content: { parts: [{ text: `Server Exception: ${error.message}` }] } }]
+            candidates: [{ content: { parts: [{ text: "Server Exception: Could not connect to Google AI servers." }] } }]
         });
     }
 }
